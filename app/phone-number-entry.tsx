@@ -10,6 +10,9 @@ export default function PhoneNumberEntryScreen() {
   const [phoneNumber, setPhoneNumber] = useState('+91');
   const [cursorVisible, setCursorVisible] = useState(true);
 
+  // ========================================
+  // CURSOR BLINKING ANIMATION
+  // ========================================
   // Blink cursor effect
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -18,10 +21,16 @@ export default function PhoneNumberEntryScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // ========================================
+  // PHONE NUMBER VALIDATION
+  // ========================================
   // Calculate digits entered (excluding +91)
   const digitsEntered = phoneNumber.length - 3; // +91 = 3 characters
   const isComplete = digitsEntered === 10;
 
+  // ========================================
+  // KEYPAD HANDLERS
+  // ========================================
   const handleKeyPress = (key: string) => {
     if (digitsEntered < 10) { // Limit to 10 digits
       setPhoneNumber(prev => prev + key);
@@ -34,6 +43,9 @@ export default function PhoneNumberEntryScreen() {
     }
   };
 
+  // ========================================
+  // NAVIGATION HANDLER
+  // ========================================
   const handleContinue = () => {
     if (phoneNumber.length === 13) { // +91 + 10 digits = 13 characters
       console.log('Phone number:', phoneNumber);
@@ -45,6 +57,9 @@ export default function PhoneNumberEntryScreen() {
     }
   };
 
+  // ========================================
+  // KEYPAD BUTTON RENDERING HELPERS
+  // ========================================
   const renderKeypadButton = (number: string, letters?: string) => (
     <TouchableOpacity
       key={number}
@@ -71,7 +86,9 @@ export default function PhoneNumberEntryScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Status Bar */}
+      {/* ========================================
+          STATUS BAR SECTION
+          ======================================== */}
       <View style={styles.statusBar}>
         <Text style={styles.statusBarText}>12:30</Text>
         <View style={styles.statusBarIcons}>
@@ -81,7 +98,9 @@ export default function PhoneNumberEntryScreen() {
         </View>
       </View>
 
-      {/* Header Section */}
+      {/* ========================================
+          HEADER SECTION - LOGO & BRANDING
+          ======================================== */}
       <View style={styles.headerSection}>
         <View style={styles.logoContainer}>
           <View style={styles.logoPlaceholder}>
@@ -92,7 +111,9 @@ export default function PhoneNumberEntryScreen() {
         <Text style={styles.tagline}>"Experience the Taste of Organic Farming"</Text>
       </View>
 
-      {/* Phone Number Input */}
+      {/* ========================================
+          PHONE NUMBER INPUT SECTION
+          ======================================== */}
       <View style={styles.inputSection}>
         <View style={styles.phoneInputContainer}>
           <Text style={styles.phoneNumberText}>
@@ -101,6 +122,9 @@ export default function PhoneNumberEntryScreen() {
           </Text>
         </View>
         
+        {/* ========================================
+            CONTINUE BUTTON
+            ======================================== */}
         <TouchableOpacity 
           style={[styles.continueButton, !isComplete && styles.continueButtonDisabled]}
           onPress={handleContinue}
@@ -113,7 +137,9 @@ export default function PhoneNumberEntryScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Compact Android Style Keypad */}
+      {/* ========================================
+          CUSTOM KEYPAD SECTION
+          ======================================== */}
       <View style={styles.keypadContainer}>
         {/* Row 1: 1, 2, 3 */}
         <View style={styles.keypadRow}>

@@ -8,17 +8,28 @@ const { width, height } = Dimensions.get('window');
 export default function OtpVerificationScreen() {
   const router = useRouter();
   const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
+  
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  
+  // ========================================
+  // REFS FOR INPUT FOCUS MANAGEMENT
+  // ========================================
   const inputRefs = useRef<TextInput[]>([]);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
+  // ========================================
+  // COUNTDOWN TIMER FOR RESEND OTP
+  // ========================================
   // Countdown timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (countdown > 0) {
       interval = setInterval(() => {
@@ -37,6 +48,9 @@ export default function OtpVerificationScreen() {
     };
   }, [countdown]);
 
+  // ========================================
+  // KEYBOARD AVOIDING ANIMATION
+  // ========================================
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -62,6 +76,9 @@ export default function OtpVerificationScreen() {
     };
   }, [slideAnim]);
 
+  // ========================================
+  // OTP INPUT HANDLERS
+  // ========================================
   const handleOtpChange = (text: string, index: number) => {
     if (text.length <= 1) {
       const newOtp = [...otp];
@@ -86,6 +103,9 @@ export default function OtpVerificationScreen() {
     }
   };
 
+  // ========================================
+  // BACKSPACE HANDLER FOR NATIVE KEYBOARD
+  // ========================================
   const handleKeyPress = (e: any) => {
     // Handle backspace from mobile keyboard
     if (e.nativeEvent.key === 'Backspace') {
@@ -107,6 +127,9 @@ export default function OtpVerificationScreen() {
     }
   };
 
+  // ========================================
+  // RESEND OTP HANDLER
+  // ========================================
   const handleResendOtp = () => {
     if (canResend) {
       console.log('Resending OTP...');
@@ -123,7 +146,9 @@ export default function OtpVerificationScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        {/* Status Bar */}
+        {/* ========================================
+            STATUS BAR SECTION
+            ======================================== */}
         <View style={styles.statusBar}>
           <Text style={styles.statusBarText}>12:30</Text>
           <View style={styles.statusBarIcons}>
@@ -133,7 +158,9 @@ export default function OtpVerificationScreen() {
           </View>
         </View>
 
-        {/* Main Content - Centered with Animation */}
+        {/* ========================================
+            MAIN CONTENT - CENTERED WITH ANIMATION
+            ======================================== */}
         <Animated.View 
           style={[
             styles.mainContent,
@@ -142,7 +169,9 @@ export default function OtpVerificationScreen() {
             }
           ]}
         >
-          {/* OTP Message */}
+          {/* ========================================
+              OTP MESSAGE SECTION
+              ======================================== */}
           <View style={styles.messageSection}>
             <Text style={styles.messageText}>
               "We've sent a verification code to"
@@ -152,7 +181,9 @@ export default function OtpVerificationScreen() {
             </Text>
           </View>
 
-          {/* OTP Input Boxes - Centered */}
+          {/* ========================================
+              OTP INPUT BOXES - CENTERED
+              ======================================== */}
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
@@ -173,15 +204,13 @@ export default function OtpVerificationScreen() {
                 textAlign="center"
                 textAlignVertical="center"
                 selectTextOnFocus
-                includeFontPadding={false}
-                lineHeight={20}
-                paddingVertical={0}
-                paddingHorizontal={0}
               />
             ))}
           </View>
 
-          {/* Resend Timer */}
+          {/* ========================================
+              RESEND TIMER SECTION
+              ======================================== */}
           <TouchableOpacity 
             style={styles.resendContainer} 
             onPress={handleResendOtp}

@@ -13,6 +13,9 @@ export default function DashboardScreen() {
   const scrollY = new Animated.Value(0);
   const insets = useSafeAreaInsets();
   
+  // ========================================
+  // SEARCH TERMS ROTATION
+  // ========================================
   const searchTerms = [
     'Pui Saag',
     'Lemon',
@@ -26,6 +29,9 @@ export default function DashboardScreen() {
     'Coriander'
   ];
 
+  // ========================================
+  // PLACEHOLDER ROTATION ANIMATION
+  // ========================================
   // Rotate search terms every 2 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -37,6 +43,9 @@ export default function DashboardScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // ========================================
+  // SEARCH HANDLER
+  // ========================================
   const handleSearch = () => {
     // Handle search functionality here
     console.log('Searching for:', searchText);
@@ -44,6 +53,9 @@ export default function DashboardScreen() {
     setIsSearchFocused(false);
   };
 
+  // ========================================
+  // ANIMATED VALUES FOR STICKY HEADER
+  // ========================================
   // Animated values for sticky header
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100, 150, 200],
@@ -71,10 +83,14 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Proper Status Bar */}
+      {/* ========================================
+          PROPER STATUS BAR
+          ======================================== */}
       <StatusBar style="dark" />
 
-      {/* Header */}
+      {/* ========================================
+          HEADER SECTION
+          ======================================== */}
       <Animated.View style={[styles.header, { 
         opacity: 1, // Always visible - removed scroll animation
         paddingTop: insets.top + 25, // Increased from 15 to 25
@@ -99,7 +115,9 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Search Bar */}
+      {/* ========================================
+          SEARCH BAR SECTION
+          ======================================== */}
       <Animated.View style={[
         styles.searchContainer,
         { 
@@ -125,6 +143,9 @@ export default function DashboardScreen() {
         </View>
       </Animated.View>
 
+      {/* ========================================
+          MAIN SCROLLABLE CONTENT
+          ======================================== */}
       <Animated.ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
@@ -134,10 +155,14 @@ export default function DashboardScreen() {
         )}
         scrollEventThrottle={16}
       >
-        {/* Slider Section */}
+        {/* ========================================
+            SLIDER SECTION
+            ======================================== */}
         <View style={styles.sliderContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sliderScroll}>
-            {/* Slider 1 */}
+            {/* ========================================
+                SLIDER 1 - FRESH & HEALTHY
+                ======================================== */}
             <View style={styles.sliderCard}>
               <View style={styles.sliderContent}>
                 <View style={styles.sliderTextContainer}>
@@ -156,7 +181,9 @@ export default function DashboardScreen() {
               </View>
             </View>
 
-            {/* Slider 2 */}
+            {/* ========================================
+                SLIDER 2 - DIRECT FROM FARMER
+                ======================================== */}
             <View style={[styles.sliderCard, { backgroundColor: '#0ca201' }]}>
               <View style={styles.sliderContent}>
                 <View style={styles.sliderTextContainer}>
@@ -173,7 +200,9 @@ export default function DashboardScreen() {
               </View>
             </View>
 
-            {/* Slider 3 */}
+            {/* ========================================
+                SLIDER 3 - FREE SAME DAY DELIVERY
+                ======================================== */}
             <View style={[styles.sliderCard, { backgroundColor: '#ffdb24' }]}>
               <View style={styles.sliderContent}>
                 <View style={styles.sliderTextContainer}>
@@ -192,7 +221,9 @@ export default function DashboardScreen() {
           </ScrollView>
         </View>
 
-        {/* Categories Section */}
+        {/* ========================================
+            CATEGORIES SECTION
+            ======================================== */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Categories</Text>
         </View>
@@ -219,7 +250,9 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Fruits Section */}
+        {/* ========================================
+            FRUITS SECTION
+            ======================================== */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Fruits</Text>
         </View>
@@ -250,7 +283,9 @@ export default function DashboardScreen() {
           ))}
         </ScrollView>
 
-        {/* View All Products */}
+        {/* ========================================
+            VIEW ALL PRODUCTS SECTION
+            ======================================== */}
         <TouchableOpacity style={styles.viewAllContainer}>
           <View style={styles.viewAllContent}>
             <View style={styles.productIcons}>
@@ -267,8 +302,10 @@ export default function DashboardScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Veggies Section */}
-        <View style={styles.sectionHeader}>
+        {/* ========================================
+            VEGGIES SECTION
+            ======================================== */}
+        <View style={[styles.sectionHeader, { paddingVertical: 0, height: 30 }]}>
           <Text style={styles.sectionTitle}>Veggies</Text>
         </View>
 
@@ -297,18 +334,37 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* ========================================
+            VIEW ALL PRODUCTS SECTION (FOR VEGGIES)
+            ======================================== */}
+        <TouchableOpacity style={styles.viewAllContainer}>
+          <View style={styles.viewAllContent}>
+            <View style={styles.productIcons}>
+              {[1, 2, 3, 4].map((_, index) => (
+                <View key={index} style={styles.productIcon}>
+                  <Ionicons name="leaf" size={20} color="#0ca201" />
+                </View>
+              ))}
+            </View>
+            <View style={styles.viewAllTextContainer}>
+              <Text style={styles.viewAllText}>View all products</Text>
+              <Ionicons name="chevron-forward" size={16} color="#0a0b0a" />
+            </View>
+          </View>
+        </TouchableOpacity>
       </Animated.ScrollView>
 
-      {/* Bottom Navigation */}
+      {/* ========================================
+          BOTTOM NAVIGATION
+          ======================================== */}
       <View style={[styles.bottomNavigation, { 
         paddingBottom: Math.max(insets.bottom, 20), // Increased minimum padding
-        height: 80 + Math.max(insets.bottom, 20), // Updated height calculation
+        height: 70 + Math.max(insets.bottom, 20), // Reduced height to match margin line
         bottom: 5, // Move footer up slightly
       }]}>
         <TouchableOpacity style={[styles.navItem, { 
-          backgroundColor: '#ececec',
-          borderWidth: 1,
-          borderColor: '#0ca201',
+          backgroundColor: 'rgba(12, 162, 1, 0.1)',
         }]}>
           <Ionicons name="home" size={26} color="#0ca201" />
           <Text style={styles.navText}>Home</Text>
@@ -335,7 +391,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     paddingTop: 0, // Remove top padding to fix spacing
-    paddingBottom: 150, // Add bottom padding to account for footer
+    paddingBottom: 120, // Add bottom padding to account for footer
   },
   header: {
     flexDirection: 'row',
@@ -379,6 +435,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: 55,
     gap: 10,
+    marginBottom: 10,
   },
   searchInput: {
     flex: 1,
@@ -406,6 +463,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: 45,
     gap: 10,
+    marginBottom: 10,
   },
   stickySearchInput: {
     flex: 1,
@@ -415,7 +473,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingBottom: 500, // Significantly increased padding to prevent content overlap with footer
+    paddingBottom: 80, // Reduced to eliminate white space above footer
   },
   sliderContainer: {
     paddingVertical: 10, // Reduced from 20
@@ -499,8 +557,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', // Changed from space-between to flex-start
     alignItems: 'center',
     paddingHorizontal: 15, // Restored padding since it's now outside categoriesContainer
-    paddingVertical: 10,
-    height: 55,
+    paddingVertical: 5, // Reduced to eliminate spacing
+    height: 40, // Reduced height to eliminate spacing
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 20, // Increased from 16 to 20
@@ -516,6 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 5,
     marginRight: 10,
+    marginBottom: 5, // Added to ensure no bottom margin
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Fixed for web
     elevation: 3, // Keep for Android
   },
@@ -584,10 +644,10 @@ const styles = StyleSheet.create({
   },
   viewAllContainer: {
     marginHorizontal: 15,
-    marginVertical: 20,
+    marginVertical: 10, // Removed spacing to match Figma design
     backgroundColor: '#f6f6f6',
     borderRadius: 10,
-    padding: 15,
+    padding: 12,
     height: 60,
   },
   viewAllContent: {
@@ -628,19 +688,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: '#ececec',
     zIndex: 100,
-    height: 80, // Decreased from 100
+    height: 60, // Reduced to stop at margin line
     paddingBottom: 0,
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center', // Changed back to center for proper spacing
-    width: 55, // Decreased from 65
-    height: 55, // Decreased from 65
+    width: 75, // Increased from 55 to make background wider
+    height: 65, // Decreased from 65
     borderRadius: 20,
     paddingVertical: 5, // Restored padding for proper spacing
   },
