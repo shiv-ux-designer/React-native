@@ -46,6 +46,11 @@ export default function RootLayout() {
           <Stack.Screen name="phone-number-entry" options={{ headerShown: false }} />
           <Stack.Screen name="otp-verification" options={{ headerShown: false }} />
           <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+          <Stack.Screen name="checkout" options={{ headerShown: false }} />
+          <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="favourites" options={{ headerShown: false }} />
+          <Stack.Screen name="search" options={{ headerShown: false }} />
+        <Stack.Screen name="category" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar />

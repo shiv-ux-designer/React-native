@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, Touchable
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 
@@ -161,22 +162,14 @@ export default function DashboardScreen() {
           marginTop: 10, // Changed from paddingTop to marginTop
         }
       ]} pointerEvents="auto">
-        <View style={styles.searchBar}>
+        <TouchableOpacity 
+          style={styles.searchBar}
+          onPress={() => router.push('/search')}
+          activeOpacity={0.8}
+        >
           <Ionicons name="search" size={20} color="#a2a2a2" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={searchText.length > 0 ? "" : `Search "${searchTerms[currentSearchIndex]}"`}
-            placeholderTextColor="#a2a2a2"
-            value={searchText}
-            onChangeText={setSearchText}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
+          <Text style={styles.searchPlaceholder}>{searchTerms[currentSearchIndex]}</Text>
+        </TouchableOpacity>
       </Animated.View>
 
       {/* ========================================
@@ -267,7 +260,11 @@ export default function DashboardScreen() {
         <View style={styles.categoriesContainer}>
           <View style={styles.categoryRow}>
             {['Bengali Special', 'Fresh Vegetables', 'Fresh Fruits'].map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryItem}>
+              <TouchableOpacity 
+                key={index} 
+                style={styles.categoryItem}
+                onPress={() => router.push('/category')}
+              >
                 <View style={styles.categoryIcon}>
                   <Ionicons name="leaf" size={24} color="#0ca201" />
                 </View>
@@ -277,7 +274,11 @@ export default function DashboardScreen() {
           </View>
           <View style={styles.categoryRow}>
             {['Groceries', 'Egg Meat & Fish', 'Dairy'].map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryItem}>
+              <TouchableOpacity 
+                key={index} 
+                style={styles.categoryItem}
+                onPress={() => router.push('/category')}
+              >
                 <View style={styles.categoryIcon}>
                   <Ionicons name="leaf" size={24} color="#0ca201" />
                 </View>
@@ -408,15 +409,24 @@ export default function DashboardScreen() {
           <Ionicons name="home" size={26} color="#0ca201" />
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => router.push('/favourites')}
+        >
           <Ionicons name="heart" size={26} color="#000000" />
           <Text style={styles.navText}>Favourite</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => router.push('/checkout')}
+        >
           <Ionicons name="refresh" size={26} color="#000000" />
           <Text style={styles.navText}>Reorders</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity 
+          style={styles.navItem}
+          onPress={() => router.push('/profile')}
+        >
           <Ionicons name="menu" size={26} color="#000000" />
           <Text style={styles.navText}>Menu</Text>
         </TouchableOpacity>
@@ -481,6 +491,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  searchPlaceholder: {
+    flex: 1,
+    fontSize: 16,
+    color: '#a2a2a2',
   },
   stickySearchBar: {
     position: 'absolute',
