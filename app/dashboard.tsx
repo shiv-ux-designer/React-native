@@ -10,6 +10,9 @@ export default function DashboardScreen() {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [searchText, setSearchText] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isScrollingUp, setIsScrollingUp] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [hasScrolledUp, setHasScrolledUp] = useState(false);
   const scrollY = new Animated.Value(0);
   const insets = useSafeAreaInsets();
   
@@ -81,8 +84,41 @@ export default function DashboardScreen() {
     extrapolate: 'clamp',
   });
 
+  // ========================================
+  // FOOTER NAVIGATION ANIMATION
+  // ========================================
+  const footerTranslateY = scrollY.interpolate({
+    inputRange: [0, 10, 30],
+    outputRange: [0, 0, 120], // Slide down completely with white container
+    extrapolate: 'clamp',
+  });
+
+  const footerOpacity = scrollY.interpolate({
+    inputRange: [0, 10, 30],
+    outputRange: [1, 1, 0], // Fade out completely including white container
+    extrapolate: 'clamp',
+  });
+
+  // ========================================
+  // SCROLL DIRECTION HANDLER
+  // ========================================
+  const handleScroll = (event: any) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y;
+    
+    if (currentScrollY > lastScrollY) {
+      // Scrolling down
+      setIsScrollingUp(false);
+    } else if (currentScrollY < lastScrollY) {
+      // Scrolling up
+      setIsScrollingUp(true);
+      setHasScrolledUp(true); // Mark that user has scrolled up
+    }
+    
+    setLastScrollY(currentScrollY);
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: isScrollingUp ? 20 : 120 }]}>
       {/* ========================================
           PROPER STATUS BAR
           ======================================== */}
@@ -147,12 +183,13 @@ export default function DashboardScreen() {
           MAIN SCROLLABLE CONTENT
           ======================================== */}
       <Animated.ScrollView 
-        style={styles.scrollView} 
+        style={[styles.scrollView, { paddingBottom: isScrollingUp ? 10 : 100 }]} 
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: false }
         )}
+        onScrollBeginDrag={handleScroll}
         scrollEventThrottle={16}
       >
         {/* ========================================
@@ -358,10 +395,12 @@ export default function DashboardScreen() {
       {/* ========================================
           BOTTOM NAVIGATION
           ======================================== */}
-      <View style={[styles.bottomNavigation, { 
+      <Animated.View style={[styles.bottomNavigation, { 
         paddingBottom: Math.max(insets.bottom, 20), // Increased minimum padding
         height: 70 + Math.max(insets.bottom, 20), // Reduced height to match margin line
         bottom: 5, // Move footer up slightly
+        transform: [{ translateY: isScrollingUp ? 120 : 0 }],
+        opacity: isScrollingUp ? 0 : 1,
       }]}>
         <TouchableOpacity style={[styles.navItem, { 
           backgroundColor: 'rgba(12, 162, 1, 0.1)',
@@ -381,7 +420,7 @@ export default function DashboardScreen() {
           <Ionicons name="menu" size={26} color="#000000" />
           <Text style={styles.navText}>Menu</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     </View>
   );
 }
