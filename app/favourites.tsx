@@ -60,11 +60,18 @@ export default function FavouritesScreen() {
           HEADER SECTION
           ======================================== */}
       <View style={styles.header}>
-        <View style={styles.locationContainer}>
+        <TouchableOpacity 
+          style={styles.locationContainer}
+          onPress={() => {
+            console.log('Location pressed');
+            router.push('/location');
+          }}
+          activeOpacity={0.7}
+        >
           <Ionicons name="location" size={24} color="#000000" />
           <Text style={styles.locationText}>61 Hopper street..</Text>
           <Ionicons name="chevron-down" size={20} color="#000000" />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.profileButton}>
           <Ionicons name="person" size={24} color="#000000" />
         </TouchableOpacity>

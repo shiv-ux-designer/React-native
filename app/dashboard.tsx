@@ -14,8 +14,13 @@ export default function DashboardScreen() {
   const [isScrollingUp, setIsScrollingUp] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
-  const scrollY = new Animated.Value(0);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+  
+  // Move animated values outside of render cycle
+  const scrollY = React.useRef(new Animated.Value(0)).current;
+  const popupAnimation = React.useRef(new Animated.Value(0)).current;
   
   // ========================================
   // SEARCH TERMS ROTATION
@@ -48,6 +53,17 @@ export default function DashboardScreen() {
   }, []);
 
   // ========================================
+  // CLEANUP ANIMATIONS ON UNMOUNT
+  // ========================================
+  useEffect(() => {
+    return () => {
+      // Cleanup animations to prevent memory leaks
+      scrollY.stopAnimation();
+      popupAnimation.stopAnimation();
+    };
+  }, [scrollY, popupAnimation]);
+
+  // ========================================
   // SEARCH HANDLER
   // ========================================
   const handleSearch = () => {
@@ -55,6 +71,30 @@ export default function DashboardScreen() {
     console.log('Searching for:', searchText);
     setSearchText('');
     setIsSearchFocused(false);
+  };
+
+  // ========================================
+  // POPUP HANDLERS
+  // ========================================
+  const openPopup = (product: string) => {
+    setSelectedProduct(product);
+    setIsPopupVisible(true);
+    Animated.timing(popupAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const closePopup = () => {
+    Animated.timing(popupAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setIsPopupVisible(false);
+      setSelectedProduct(null);
+    });
   };
 
   // ========================================
@@ -138,7 +178,7 @@ export default function DashboardScreen() {
           style={styles.locationContainer}
           onPress={() => {
             console.log('Location pressed');
-            // Add your location selection logic here
+            router.push('/location');
           }}
           activeOpacity={0.7}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -297,27 +337,42 @@ export default function DashboardScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
           {['Banana', 'Apple', 'Orange', 'Strawberry', 'Kiwi', 'Watermelon'].map((product, index) => (
-            <TouchableOpacity key={index} style={styles.productCard}>
+            <View key={index} style={styles.productCard}>
               <View style={styles.productImageContainer}>
                 <View style={styles.productImage}>
                   <Ionicons name="leaf" size={40} color="#0ca201" />
                 </View>
                 <View style={styles.discountTag}>
-                  <Text style={styles.discountText}>10% Off</Text>
+                  <Text style={styles.discountText}>10%</Text>
+                  <Text style={styles.discountOffText}>Off</Text>
                 </View>
               </View>
+              
+              {/* Add Button - Positioned absolutely */}
+              <TouchableOpacity 
+                style={styles.addButtonNew}
+                onPress={() => openPopup(product)}
+              >
+                <View style={styles.addButtonContent}>
+                  <Text style={styles.addButtonText}>ADD</Text>
+                  <Text style={styles.addButtonSubtext}>2 Options</Text>
+                </View>
+              </TouchableOpacity>
+              
               <View style={styles.productInfo}>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.productPrice}>₹10</Text>
+                  <Text style={styles.originalPrice}>₹15</Text>
+                  <Text style={styles.saveText}>Save ₹5</Text>
+                </View>
+                <Text style={styles.productQuantity}>1 pcs</Text>
                 <Text style={styles.productName}>{product}</Text>
                 <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={16} color="#ffd500" />
-                  <Text style={styles.ratingText}>4.8 (287)</Text>
+                  <Ionicons name="star" size={12} color="#ffd500" />
+                  <Text style={styles.ratingText}>4.8 (1.k)</Text>
                 </View>
-                <Text style={styles.productPrice}>$3.99</Text>
               </View>
-              <TouchableOpacity style={styles.addButton}>
-                <Ionicons name="add" size={20} color="#000000" />
-              </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
 
@@ -349,27 +404,42 @@ export default function DashboardScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
           {['Tomatoes', 'Dark Chilli', 'Capsicum', 'Cauliflower', 'Carrot', 'Cucumber', 'Lady Finger', 'Ginger'].map((product, index) => (
-            <TouchableOpacity key={index} style={styles.productCard}>
+            <View key={index} style={styles.productCard}>
               <View style={styles.productImageContainer}>
                 <View style={styles.productImage}>
                   <Ionicons name="leaf" size={40} color="#0ca201" />
                 </View>
                 <View style={styles.discountTag}>
-                  <Text style={styles.discountText}>10% Off</Text>
+                  <Text style={styles.discountText}>10%</Text>
+                  <Text style={styles.discountOffText}>Off</Text>
                 </View>
               </View>
+              
+              {/* Add Button - Positioned absolutely */}
+              <TouchableOpacity 
+                style={styles.addButtonNew}
+                onPress={() => openPopup(product)}
+              >
+                <View style={styles.addButtonContent}>
+                  <Text style={styles.addButtonText}>ADD</Text>
+                  <Text style={styles.addButtonSubtext}>2 Options</Text>
+                </View>
+              </TouchableOpacity>
+              
               <View style={styles.productInfo}>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.productPrice}>₹10</Text>
+                  <Text style={styles.originalPrice}>₹15</Text>
+                  <Text style={styles.saveText}>Save ₹5</Text>
+                </View>
+                <Text style={styles.productQuantity}>1 pcs</Text>
                 <Text style={styles.productName}>{product}</Text>
                 <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={16} color="#ffd500" />
-                  <Text style={styles.ratingText}>4.8 (287)</Text>
+                  <Ionicons name="star" size={12} color="#ffd500" />
+                  <Text style={styles.ratingText}>4.8 (1.k)</Text>
                 </View>
-                <Text style={styles.productPrice}>$3.45</Text>
               </View>
-              <TouchableOpacity style={styles.addButton}>
-                <Ionicons name="add" size={20} color="#000000" />
-              </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
 
@@ -418,7 +488,7 @@ export default function DashboardScreen() {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.navItem}
-          onPress={() => router.push('/checkout')}
+          onPress={() => router.push('/reorder')}
         >
           <Ionicons name="refresh" size={26} color="#000000" />
           <Text style={styles.navText}>Reorders</Text>
@@ -431,6 +501,94 @@ export default function DashboardScreen() {
           <Text style={styles.navText}>Menu</Text>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* ========================================
+          PRODUCT POPUP MODAL
+          ======================================== */}
+      {isPopupVisible && (
+        <Animated.View 
+          style={[
+            styles.popupOverlay,
+            {
+              opacity: popupAnimation,
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            style={styles.popupBackdrop}
+            onPress={closePopup}
+            activeOpacity={1}
+          />
+          <Animated.View 
+            style={[
+              styles.popupContainer,
+              {
+                transform: [{
+                  translateY: popupAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [400, 0],
+                  })
+                }]
+              }
+            ]}
+          >
+            {/* Popup Header */}
+            <View style={styles.popupHeader}>
+              <Text style={styles.popupTitle}>{selectedProduct}</Text>
+              <TouchableOpacity onPress={closePopup} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Select Unit Section */}
+            <View style={styles.selectUnitSection}>
+              <Text style={styles.selectUnitText}>Select Unit</Text>
+            </View>
+
+            {/* Product Options */}
+            <View style={styles.productOptionsContainer}>
+              {/* Option 1 */}
+              <View style={styles.productOption}>
+                <View style={styles.optionImageContainer}>
+                  <View style={styles.optionImage}>
+                    <Ionicons name="leaf" size={30} color="#0ca201" />
+                  </View>
+                </View>
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionName}>bunch of banana</Text>
+                  <Text style={styles.optionQuantity}>Qty: 250g</Text>
+                  <Text style={styles.optionPrice}>₹3.45</Text>
+                </View>
+                <TouchableOpacity style={styles.optionAddButton}>
+                  <Text style={styles.optionAddText}>ADD</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Option 2 */}
+              <View style={styles.productOption}>
+                <View style={styles.optionImageContainer}>
+                  <View style={styles.optionImage}>
+                    <Ionicons name="leaf" size={30} color="#0ca201" />
+                  </View>
+                </View>
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionName}>bunch of banana</Text>
+                  <Text style={styles.optionQuantity}>Qty: 500g</Text>
+                  <Text style={styles.optionPrice}>₹6.90</Text>
+                </View>
+                <TouchableOpacity style={styles.optionAddButton}>
+                  <Text style={styles.optionAddText}>ADD</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Done Button */}
+            <TouchableOpacity style={styles.doneButton} onPress={closePopup}>
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -652,6 +810,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   discountText: {
     color: '#ffffff',
@@ -695,6 +856,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Fixed for web
     elevation: 3, // Keep for Android
+  },
+  // New styles for updated card design
+  discountOffText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  addButtonNew: {
+    position: 'absolute',
+    top: '50%',
+    right: 11,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    transform: [{ translateY: -19 }], // Half of height to center
+    boxShadow: '0px 7px 40px rgba(0, 0, 0, 0.05)',
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#3cb433',
+  },
+  addButtonContent: {
+    alignItems: 'center',
+  },
+  addButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: 0.26,
+  },
+  addButtonSubtext: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#000000',
+    letterSpacing: 0.2,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 2,
+  },
+  originalPrice: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#808080',
+    textDecorationLine: 'line-through',
+  },
+  saveText: {
+    fontSize: 9,
+    fontWeight: '500',
+    color: '#ff0000',
+  },
+  productQuantity: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#000000',
+    marginBottom: 2,
   },
   viewAllContainer: {
     marginHorizontal: 15,
@@ -763,5 +982,141 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000000',
     marginTop: 3, // Restored to proper spacing
+  },
+  // Popup styles
+  popupOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000,
+    justifyContent: 'flex-end',
+  },
+  popupBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  popupContainer: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    minHeight: 400,
+  },
+  popupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  popupTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0f1b2a',
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectUnitSection: {
+    marginBottom: 20,
+  },
+  selectUnitText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#232f3e',
+  },
+  productOptionsContainer: {
+    marginBottom: 30,
+  },
+  productOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#f6f6f6',
+  },
+  optionImageContainer: {
+    width: 114,
+    height: 111,
+    backgroundColor: '#f6f6f6',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  optionImage: {
+    width: 73,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionInfo: {
+    flex: 1,
+    justifyContent: 'space-between',
+    height: 71,
+  },
+  optionName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 5,
+  },
+  optionQuantity: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#0a0b0a',
+    lineHeight: 20,
+  },
+  optionPrice: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#0a0b0a',
+    lineHeight: 20,
+  },
+  optionAddButton: {
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3cb433',
+    shadowColor: 'rgba(0, 0, 0, 0.05)',
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 1,
+    shadowRadius: 40,
+    elevation: 5,
+  },
+  optionAddText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#000000',
+    letterSpacing: 0.26,
+  },
+  doneButton: {
+    backgroundColor: '#0ca201',
+    borderRadius: 10,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
 }); 

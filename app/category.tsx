@@ -7,21 +7,26 @@ import {
   StyleSheet,
   SafeAreaView,
   Image,
+  TextInput,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+const { width, height } = Dimensions.get('window');
+
 export default function CategoryScreen() {
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchText, setSearchText] = useState('Buy Fresh Fruits');
 
   // Sample category data
   const categories = [
-    { id: 1, name: 'All', image: 'https://via.placeholder.com/55x55/FFD700/FFFFFF?text=A' },
-    { id: 2, name: 'Exotic Fruits', image: 'https://via.placeholder.com/55x55/4ECDC4/FFFFFF?text=EF' },
-    { id: 3, name: 'Daily fruits', image: 'https://via.placeholder.com/55x55/FF6B6B/FFFFFF?text=DF' },
+    { id: 1, name: 'All', image: 'https://via.placeholder.com/55x55/0ca201/FFFFFF?text=A' },
+    { id: 2, name: 'Exotic Fruits', image: 'https://via.placeholder.com/55x55/FF6B6B/FFFFFF?text=EF' },
+    { id: 3, name: 'Daily fruits', image: 'https://via.placeholder.com/55x55/4ECDC4/FFFFFF?text=DF' },
     { id: 4, name: 'Seasonal Fruits', image: 'https://via.placeholder.com/55x55/FF8E53/FFFFFF?text=SF' },
   ];
 
@@ -36,7 +41,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/FFD700/FFFFFF?text=B',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹5'
+      saveAmount: 'Save ₹5',
+      options: '2 Options'
     },
     {
       id: 2,
@@ -47,7 +53,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/FF0000/FFFFFF?text=A',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹6'
+      saveAmount: 'Save ₹6',
+      options: '2 Options'
     },
     {
       id: 3,
@@ -58,7 +65,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/FFA500/FFFFFF?text=O',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹4'
+      saveAmount: 'Save ₹4',
+      options: '2 Options'
     },
     {
       id: 4,
@@ -69,7 +77,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/FFD700/FFFFFF?text=M',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹5'
+      saveAmount: 'Save ₹5',
+      options: '2 Options'
     },
     {
       id: 5,
@@ -80,7 +89,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/FF69B4/FFFFFF?text=S',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹5'
+      saveAmount: 'Save ₹5',
+      options: '2 Options'
     },
     {
       id: 6,
@@ -91,7 +101,8 @@ export default function CategoryScreen() {
       rating: '4.8 (1.k)',
       image: 'https://via.placeholder.com/138x112/4ECDC4/FFFFFF?text=K',
       quantity: '1 pcs',
-      saveAmount: 'Save ₹4'
+      saveAmount: 'Save ₹4',
+      options: '2 Options'
     },
   ];
 
@@ -100,20 +111,21 @@ export default function CategoryScreen() {
       <StatusBar style="dark" />
       
       {/* ========================================
-          HEADER SECTION
+          SEARCH HEADER
           ======================================== */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="chevron-back" size={24} color="#0a0b0a" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Fruits</Text>
+      <View style={styles.searchHeader}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#a2a2a2" />
+          <TextInput
+            style={styles.searchInput}
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search for area, street name...."
+            placeholderTextColor="#a2a2a2"
+          />
         </View>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={24} color="#0a0b0a" />
+        <TouchableOpacity style={styles.filterButton}>
+          <Ionicons name="options-outline" size={20} color="#000000" />
         </TouchableOpacity>
       </View>
 
@@ -138,15 +150,20 @@ export default function CategoryScreen() {
                 ]}
                 onPress={() => setSelectedCategory(category.name)}
               >
-                <View style={styles.categoryImageContainer}>
-                  <Image source={{ uri: category.image }} style={styles.categoryImage} />
+                {selectedCategory === category.name && (
+                  <View style={styles.activeIndicator} />
+                )}
+                <View style={styles.categoryContent}>
+                  <View style={styles.categoryImageContainer}>
+                    <Image source={{ uri: category.image }} style={styles.categoryImage} />
+                  </View>
+                  <Text style={[
+                    styles.categoryText,
+                    selectedCategory === category.name && styles.categoryTextActive
+                  ]}>
+                    {category.name}
+                  </Text>
                 </View>
-                <Text style={[
-                  styles.categoryText,
-                  selectedCategory === category.name && styles.categoryTextActive
-                ]}>
-                  {category.name}
-                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -171,16 +188,16 @@ export default function CategoryScreen() {
                     </View>
                   </View>
 
-                  {/* Add to Cart Button */}
-                  <View style={styles.addToCartButton}>
-                    <Ionicons name="remove" size={16} color="#000000" />
-                    <Text style={styles.quantityText}>1</Text>
-                    <Ionicons name="add" size={16} color="#000000" />
+                  {/* Add Button */}
+                  <View style={styles.addButton}>
+                    <Text style={styles.addButtonText}>ADD</Text>
+                    <View style={styles.optionsLine} />
+                    <Text style={styles.optionsText}>{product.options}</Text>
                   </View>
 
                   {/* Favorite Button */}
                   <TouchableOpacity style={styles.favoriteButton}>
-                    <Ionicons name="heart-outline" size={24} color="#000000" />
+                    <Ionicons name="heart-outline" size={20} color="#000000" />
                   </TouchableOpacity>
 
                   {/* Product Info */}
@@ -192,11 +209,8 @@ export default function CategoryScreen() {
                       <Text style={styles.saveAmount}>{product.saveAmount}</Text>
                     </View>
 
-                    {/* Quantity Selector */}
-                    <View style={styles.quantitySelector}>
-                      <Text style={styles.quantityLabel}>{product.quantity}</Text>
-                      <Ionicons name="chevron-down" size={12} color="#000000" />
-                    </View>
+                    {/* Quantity */}
+                    <Text style={styles.quantityText}>{product.quantity}</Text>
 
                     {/* Product Name */}
                     <Text style={styles.productName}>{product.name}</Text>
@@ -222,7 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  header: {
+  searchHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -235,25 +249,31 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  headerLeft: {
+  searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    backgroundColor: '#f6f6f6',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    height: 55,
+    borderWidth: 1,
+    borderColor: '#cccbcb',
+    marginRight: 20,
   },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#0a0b0a',
+    color: '#000000',
   },
-  searchButton: {
+  filterButton: {
     padding: 5,
   },
   mainContent: {
     flex: 1,
     flexDirection: 'row',
+    paddingTop: 10,
   },
   sidebar: {
     width: 75,
@@ -264,31 +284,46 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 2,
+    marginLeft: 3,
   },
   sidebarContent: {
     paddingVertical: 10,
   },
   categoryItem: {
+    height: 90,
     alignItems: 'center',
-    paddingVertical: 10,
-    marginBottom: 5,
+    justifyContent: 'center',
+    position: 'relative',
   },
   categoryItemActive: {
     backgroundColor: '#f6f6f6',
     borderRadius: 6,
   },
+  activeIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3.5,
+    backgroundColor: '#0ca201',
+  },
+  categoryContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
   categoryImageContainer: {
-    width: 55,
-    height: 55,
-    backgroundColor: '#f6f6f6',
-    borderRadius: 6,
+    width: 52,
+    height: 52,
+    backgroundColor: '#ffffff',
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 5,
   },
   categoryImage: {
-    width: 55,
-    height: 55,
+    width: 29,
+    height: 27,
     borderRadius: 6,
   },
   categoryText: {
@@ -329,7 +364,7 @@ const styles = StyleSheet.create({
   productImageContainer: {
     backgroundColor: '#f6f6f6',
     borderRadius: 15,
-    height: 138,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -353,29 +388,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  addToCartButton: {
+  addButton: {
     position: 'absolute',
     bottom: 10,
     right: 10,
     backgroundColor: '#ffffff',
-    borderRadius: 38,
-    width: 36,
-    height: 36,
-    flexDirection: 'row',
+    borderRadius: 10,
+    width: 83,
+    height: 38,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 7,
     borderWidth: 1,
-    borderColor: '#ececec',
+    borderColor: '#3cb433',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 7 },
     shadowOpacity: 0.05,
-    shadowRadius: 38,
+    shadowRadius: 40,
     elevation: 2,
   },
-  quantityText: {
+  addButtonText: {
     fontSize: 13,
     fontWeight: '600',
+    color: '#000000',
+    marginBottom: 2,
+  },
+  optionsLine: {
+    width: 55,
+    height: 1,
+    backgroundColor: '#ffffff',
+    marginVertical: 2,
+  },
+  optionsText: {
+    fontSize: 10,
+    fontWeight: '500',
     color: '#000000',
   },
   favoriteButton: {
@@ -422,18 +467,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#ff0000',
   },
-  quantitySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: '#0ca201',
-    borderRadius: 3,
-  },
-  quantityLabel: {
-    fontSize: 11,
+  quantityText: {
+    fontSize: 12,
     color: '#000000',
   },
   productName: {
