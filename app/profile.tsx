@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +15,41 @@ import { router } from 'expo-router';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+
+  const handleOrdersPress = () => {
+    router.push('/orders-history');
+  };
+
+  const handleCartPress = () => {
+    // Since we don't have cart items in profile, we'll navigate to cart without items
+    // The cart screen will handle empty state
+    router.push('/cart');
+  };
+
+  const handleWishlistPress = () => {
+    router.push('/favourites');
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: () => {
+            // Navigate back to phone number entry screen (login)
+            router.replace('/phone-number-entry');
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,44 +93,36 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Information</Text>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleOrdersPress}>
             <View style={styles.menuLeft}>
-              <Ionicons name="time" size={24} color="#000000" />
+              <Ionicons name="time" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Your Orders</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleCartPress}>
             <View style={styles.menuLeft}>
-              <Ionicons name="cart" size={24} color="#000000" />
+              <Ionicons name="cart" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Your Cart</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleWishlistPress}>
             <View style={styles.menuLeft}>
-              <Ionicons name="heart" size={24} color="#000000" />
+              <Ionicons name="heart" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Your Wishlist</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <Ionicons name="location" size={24} color="#000000" />
+              <Ionicons name="location" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Saved Addresses</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuLeft}>
-              <Ionicons name="gift" size={24} color="#000000" />
-              <Text style={styles.menuText}>Rewards</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
         </View>
 
@@ -106,34 +134,34 @@ export default function ProfileScreen() {
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <Ionicons name="share-social" size={24} color="#000000" />
+              <Ionicons name="share-social" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Share the app</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <Ionicons name="information-circle" size={24} color="#000000" />
+              <Ionicons name="information-circle" size={24} color="#0ca201" />
               <Text style={styles.menuText}>About us</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <Ionicons name="lock-closed" size={24} color="#000000" />
+              <Ionicons name="lock-closed" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Account Privacy</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <View style={styles.menuLeft}>
-              <Ionicons name="log-out" size={24} color="#000000" />
+              <Ionicons name="log-out" size={24} color="#0ca201" />
               <Text style={styles.menuText}>Logout</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#000000" />
+            <Ionicons name="chevron-forward" size={20} color="#0ca201" />
           </TouchableOpacity>
         </View>
       </ScrollView>

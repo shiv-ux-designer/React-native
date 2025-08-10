@@ -49,12 +49,21 @@ export default function RootLayout() {
             <Stack.Screen name="otp-verification" options={{ headerShown: false }} />
             <Stack.Screen name="dashboard" options={{ headerShown: false }} />
             <Stack.Screen name="checkout" options={{ headerShown: false }} />
+            <Stack.Screen name="cart" options={{ headerShown: false }} />
+            <Stack.Screen name="coupons" options={{ headerShown: false }} />
+            <Stack.Screen name="delivery-slot" options={{ headerShown: false }} />
+            <Stack.Screen name="delivery-instructions" options={{ headerShown: false }} />
+            <Stack.Screen name="payment-method" options={{ headerShown: false }} />
+            <Stack.Screen name="order-confirmation" options={{ headerShown: false }} />
+            <Stack.Screen name="orders-history" options={{ headerShown: false }} />
+            <Stack.Screen name="order-details" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="favourites" options={{ headerShown: false }} />
+            <Stack.Screen name="product-details" options={{ headerShown: false }} />
             <Stack.Screen name="search" options={{ headerShown: false }} />
             <Stack.Screen name="category" options={{ headerShown: false }} />
             <Stack.Screen name="location" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="reorder" options={{ headerShown: false }} />
           </Stack>
           <StatusBar />
         </ThemeProvider>

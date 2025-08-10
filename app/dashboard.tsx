@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, Animated } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, Animated, PanResponder } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,11 +16,56 @@ export default function DashboardScreen() {
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<{[key: string]: number}>({});
+  const [isBasketVisible, setIsBasketVisible] = useState(false);
   const insets = useSafeAreaInsets();
   
   // Move animated values outside of render cycle
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const popupAnimation = React.useRef(new Animated.Value(0)).current;
+  const floatingButtonAnimation = React.useRef(new Animated.Value(0)).current;
+  const basketAnimation = React.useRef(new Animated.Value(0)).current;
+
+  // ========================================
+  // PAN RESPONDER FOR DRAG TO CLOSE
+  // ========================================
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return gestureState.dy > 10;
+      },
+      onPanResponderGrant: () => {
+        // Start tracking the gesture
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        if (gestureState.dy > 0) {
+          basketAnimation.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          // Close the basket
+          Animated.spring(basketAnimation, {
+            toValue: height,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 8,
+          }).start(() => {
+            setIsBasketVisible(false);
+          });
+        } else {
+          // Snap back to open position
+          Animated.spring(basketAnimation, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
   
   // ========================================
   // SEARCH TERMS ROTATION
@@ -60,8 +105,10 @@ export default function DashboardScreen() {
       // Cleanup animations to prevent memory leaks
       scrollY.stopAnimation();
       popupAnimation.stopAnimation();
+      floatingButtonAnimation.stopAnimation();
+      basketAnimation.stopAnimation();
     };
-  }, [scrollY, popupAnimation]);
+  }, [scrollY, popupAnimation, floatingButtonAnimation, basketAnimation]);
 
   // ========================================
   // SEARCH HANDLER
@@ -94,6 +141,87 @@ export default function DashboardScreen() {
     }).start(() => {
       setIsPopupVisible(false);
       setSelectedProduct(null);
+    });
+  };
+
+  // ========================================
+  // CART MANAGEMENT FUNCTIONS
+  // ========================================
+  const addToCart = (productName: string) => {
+    setCartItems(prev => ({
+      ...prev,
+      [productName]: (prev[productName] || 0) + 1
+    }));
+    closePopup();
+  };
+
+  const removeFromCart = (productName: string) => {
+    setCartItems(prev => {
+      const newItems = { ...prev };
+      if (newItems[productName] > 1) {
+        newItems[productName] -= 1;
+      } else {
+        delete newItems[productName];
+      }
+      return newItems;
+    });
+  };
+
+  const getQuantity = (productName: string) => {
+    return cartItems[productName] || 0;
+  };
+
+  // ========================================
+  // CART ITEMS COUNT
+  // ========================================
+  const getTotalCartItems = () => {
+    return Object.values(cartItems).reduce((total, quantity) => total + quantity, 0);
+  };
+
+  // ========================================
+  // FLOATING BUTTON ANIMATION EFFECT
+  // ========================================
+  // Animate floating button when cart items change
+  useEffect(() => {
+    const totalItems = getTotalCartItems();
+    if (totalItems > 0) {
+      Animated.spring(floatingButtonAnimation, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    } else {
+      Animated.spring(floatingButtonAnimation, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    }
+  }, [cartItems, floatingButtonAnimation]);
+
+  // ========================================
+  // FLOATING BUTTON HANDLER
+  // ========================================
+  const handleViewBasket = () => {
+    setIsBasketVisible(true);
+    Animated.spring(basketAnimation, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 8,
+    }).start();
+  };
+
+  const closeBasket = () => {
+    Animated.spring(basketAnimation, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 8,
+    }).start(() => {
+      setIsBasketVisible(false);
     });
   };
 
@@ -337,7 +465,14 @@ export default function DashboardScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
           {['Banana', 'Apple', 'Orange', 'Strawberry', 'Kiwi', 'Watermelon'].map((product, index) => (
-            <View key={index} style={styles.productCard}>
+            <TouchableOpacity 
+              key={index} 
+              style={styles.productCard}
+              onPress={() => router.push({
+                pathname: '/product-details',
+                params: { productName: product, productImage: 'leaf' }
+              })}
+            >
               <View style={styles.productImageContainer}>
                 <View style={styles.productImage}>
                   <Ionicons name="leaf" size={40} color="#0ca201" />
@@ -348,16 +483,47 @@ export default function DashboardScreen() {
                 </View>
               </View>
               
-              {/* Add Button - Positioned absolutely */}
-              <TouchableOpacity 
-                style={styles.addButtonNew}
-                onPress={() => openPopup(product)}
-              >
-                <View style={styles.addButtonContent}>
-                  <Text style={styles.addButtonText}>ADD</Text>
-                  <Text style={styles.addButtonSubtext}>2 Options</Text>
+              {/* Quantity Controls or Add Button */}
+              {getQuantity(product) > 0 ? (
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity 
+                    style={styles.quantityButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      removeFromCart(product);
+                    }}
+                  >
+                    <Ionicons 
+                      name={getQuantity(product) === 1 ? "trash" : "remove"} 
+                      size={18} 
+                      color="#000000" 
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{getQuantity(product)}</Text>
+                  <TouchableOpacity 
+                    style={styles.quantityButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      addToCart(product);
+                    }}
+                  >
+                    <Ionicons name="add" size={18} color="#000000" />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.addButtonNew}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    openPopup(product);
+                  }}
+                >
+                  <View style={styles.addButtonContent}>
+                    <Text style={styles.addButtonText}>ADD</Text>
+                    <Text style={styles.addButtonSubtext}>2 Options</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
               
               <View style={styles.productInfo}>
                 <View style={styles.priceContainer}>
@@ -372,7 +538,7 @@ export default function DashboardScreen() {
                   <Text style={styles.ratingText}>4.8 (1.k)</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
 
@@ -404,7 +570,14 @@ export default function DashboardScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
           {['Tomatoes', 'Dark Chilli', 'Capsicum', 'Cauliflower', 'Carrot', 'Cucumber', 'Lady Finger', 'Ginger'].map((product, index) => (
-            <View key={index} style={styles.productCard}>
+            <TouchableOpacity 
+              key={index} 
+              style={styles.productCard}
+              onPress={() => router.push({
+                pathname: '/product-details',
+                params: { productName: product, productImage: 'leaf' }
+              })}
+            >
               <View style={styles.productImageContainer}>
                 <View style={styles.productImage}>
                   <Ionicons name="leaf" size={40} color="#0ca201" />
@@ -415,16 +588,47 @@ export default function DashboardScreen() {
                 </View>
               </View>
               
-              {/* Add Button - Positioned absolutely */}
-              <TouchableOpacity 
-                style={styles.addButtonNew}
-                onPress={() => openPopup(product)}
-              >
-                <View style={styles.addButtonContent}>
-                  <Text style={styles.addButtonText}>ADD</Text>
-                  <Text style={styles.addButtonSubtext}>2 Options</Text>
+              {/* Quantity Controls or Add Button */}
+              {getQuantity(product) > 0 ? (
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity 
+                    style={styles.quantityButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      removeFromCart(product);
+                    }}
+                  >
+                    <Ionicons 
+                      name={getQuantity(product) === 1 ? "trash" : "remove"} 
+                      size={18} 
+                      color="#000000" 
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{getQuantity(product)}</Text>
+                  <TouchableOpacity 
+                    style={styles.quantityButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      addToCart(product);
+                    }}
+                  >
+                    <Ionicons name="add" size={18} color="#000000" />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.addButtonNew}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    openPopup(product);
+                  }}
+                >
+                  <View style={styles.addButtonContent}>
+                    <Text style={styles.addButtonText}>ADD</Text>
+                    <Text style={styles.addButtonSubtext}>2 Options</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
               
               <View style={styles.productInfo}>
                 <View style={styles.priceContainer}>
@@ -439,7 +643,7 @@ export default function DashboardScreen() {
                   <Text style={styles.ratingText}>4.8 (1.k)</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
 
@@ -559,7 +763,10 @@ export default function DashboardScreen() {
                   <Text style={styles.optionQuantity}>Qty: 250g</Text>
                   <Text style={styles.optionPrice}>₹3.45</Text>
                 </View>
-                <TouchableOpacity style={styles.optionAddButton}>
+                <TouchableOpacity 
+                  style={styles.optionAddButton}
+                  onPress={() => addToCart(selectedProduct || '')}
+                >
                   <Text style={styles.optionAddText}>ADD</Text>
                 </TouchableOpacity>
               </View>
@@ -576,7 +783,10 @@ export default function DashboardScreen() {
                   <Text style={styles.optionQuantity}>Qty: 500g</Text>
                   <Text style={styles.optionPrice}>₹6.90</Text>
                 </View>
-                <TouchableOpacity style={styles.optionAddButton}>
+                <TouchableOpacity 
+                  style={styles.optionAddButton}
+                  onPress={() => addToCart(selectedProduct || '')}
+                >
                   <Text style={styles.optionAddText}>ADD</Text>
                 </TouchableOpacity>
               </View>
@@ -588,6 +798,183 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
+      )}
+
+      {/* ========================================
+          BASKET MODAL
+          ======================================== */}
+      {isBasketVisible && (
+        <Animated.View 
+          style={[
+            styles.basketOverlay,
+            {
+              opacity: basketAnimation,
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            style={styles.basketBackdrop}
+            onPress={closeBasket}
+            activeOpacity={1}
+          />
+          <Animated.View 
+            style={[
+              styles.basketContainer,
+              {
+                transform: [{
+                  translateY: basketAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [height, 0],
+                  })
+                }]
+              }
+            ]}
+            {...panResponder.panHandlers}
+          >
+            {/* Basket Header */}
+            <View style={styles.basketHeader}>
+              <View style={styles.dragIndicator} />
+              <View style={styles.basketHeaderContent}>
+                <Text style={styles.basketTitle}>Your Basket</Text>
+                <Text style={styles.basketSubtitle}>{getTotalCartItems()} items</Text>
+              </View>
+              <TouchableOpacity onPress={closeBasket} style={styles.basketCloseButton}>
+                <Ionicons name="close" size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Basket Items */}
+            <ScrollView style={styles.basketItemsContainer} showsVerticalScrollIndicator={false}>
+              {Object.entries(cartItems).length > 0 ? (
+                Object.entries(cartItems).map(([productName, quantity]) => (
+                  <View key={productName} style={styles.basketItem}>
+                    <View style={styles.basketItemImage}>
+                      <Ionicons name="leaf" size={30} color="#0ca201" />
+                    </View>
+                    <View style={styles.basketItemInfo}>
+                      <Text style={styles.basketItemName}>{productName}</Text>
+                      <Text style={styles.basketItemPrice}>₹{(quantity * 10).toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.basketItemControls}>
+                      <TouchableOpacity 
+                        style={styles.basketItemButton}
+                        onPress={() => removeFromCart(productName)}
+                      >
+                        <Ionicons 
+                          name={quantity === 1 ? "trash" : "remove"} 
+                          size={18} 
+                          color="#000000" 
+                        />
+                      </TouchableOpacity>
+                      <Text style={styles.basketItemQuantity}>{quantity}</Text>
+                      <TouchableOpacity 
+                        style={styles.basketItemButton}
+                        onPress={() => addToCart(productName)}
+                      >
+                        <Ionicons name="add" size={18} color="#000000" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyBasket}>
+                  <Ionicons name="basket-outline" size={60} color="#cccccc" />
+                  <Text style={styles.emptyBasketText}>Your basket is empty</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Basket Footer */}
+            {Object.entries(cartItems).length > 0 && (
+              <View style={styles.basketFooter}>
+                <View style={styles.basketTotal}>
+                  <Text style={styles.basketTotalLabel}>Total:</Text>
+                  <Text style={styles.basketTotalAmount}>
+                    ₹{(Object.entries(cartItems).reduce((total, [_, quantity]) => total + (quantity * 10), 0)).toFixed(2)}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.proceedButton}
+                  onPress={() => {
+                    closeBasket();
+                    router.push({
+                      pathname: '/cart',
+                      params: { cartItems: JSON.stringify(cartItems) }
+                    });
+                  }}
+                >
+                  <Text style={styles.proceedButtonText}>Go to Cart</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+        </Animated.View>
+      )}
+
+      {/* ========================================
+          FLOATING VIEW BASKET BUTTON
+          ======================================== */}
+      {!isBasketVisible && (
+        <Animated.View
+          style={[
+            styles.floatingButtonContainer,
+            {
+              opacity: floatingButtonAnimation,
+              transform: [
+                {
+                  translateY: floatingButtonAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0],
+                  }),
+                },
+                {
+                  scale: floatingButtonAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+          pointerEvents={getTotalCartItems() > 0 ? 'auto' : 'none'}
+        >
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={handleViewBasket}
+          activeOpacity={0.8}
+        >
+          {/* Product Icons */}
+          <View style={styles.floatingButtonIcons}>
+            {Object.entries(cartItems).slice(0, 3).map(([productName, quantity], index) => (
+              <View
+                key={productName}
+                style={[
+                  styles.floatingButtonIcon,
+                  {
+                    marginRight: index === 2 ? 0 : -8,
+                    zIndex: 3 - index,
+                  },
+                ]}
+              >
+                <Ionicons name="leaf" size={16} color="#0ca201" />
+              </View>
+            ))}
+          </View>
+
+          {/* Button Content */}
+          <View style={styles.floatingButtonContent}>
+            <Text style={styles.floatingButtonText}>View Basket</Text>
+            <Ionicons name="chevron-forward" size={20} color="#ffffff" />
+          </View>
+
+          {/* Item Count Badge */}
+          {getTotalCartItems() > 0 && (
+            <View style={styles.floatingButtonBadge}>
+              <Text style={styles.floatingButtonBadgeText}>{getTotalCartItems()}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
       )}
     </View>
   );
@@ -1119,4 +1506,287 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
   },
+  // Quantity control styles
+  quantityContainer: {
+    position: 'absolute',
+    top: '50%',
+    right: 11,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    transform: [{ translateY: -19 }],
+    boxShadow: '0px 7px 40px rgba(0, 0, 0, 0.05)',
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#4fb846',
+  },
+  quantityButton: {
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  // Floating button styles
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 120, // Positioned above the bottom navigation
+    right: 20,
+    zIndex: 1000,
+  },
+  floatingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0ca201',
+    borderRadius: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minWidth: 180,
+    shadowColor: 'rgba(0, 0, 0, 0.2)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  floatingButtonIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  floatingButtonIcon: {
+    width: 32,
+    height: 32,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    marginRight: -8,
+  },
+  floatingButtonIconInner: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  floatingButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  floatingButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  floatingButtonBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#ff0019',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  floatingButtonBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  // Basket modal styles
+  basketOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000,
+    justifyContent: 'flex-end',
+  },
+  basketBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  basketContainer: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    minHeight: 400,
+  },
+  basketHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  basketHeaderContent: {
+    flex: 1,
+  },
+  basketTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0f1b2a',
+    marginBottom: 5,
+  },
+  basketSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#0a0b0a',
+  },
+  basketCloseButton: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  basketItemsContainer: {
+    maxHeight: height * 0.6, // Limit height to 60% of screen
+    marginBottom: 20,
+  },
+  basketItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f6f6f6',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ececec',
+  },
+  basketItemImage: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#ffffff',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  basketItemInfo: {
+    flex: 1,
+    justifyContent: 'space-between',
+    height: 50,
+  },
+  basketItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  basketItemPrice: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#0ca201',
+  },
+  basketItemControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  basketItemButton: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ececec',
+    borderRadius: 14,
+  },
+  basketItemQuantity: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  emptyBasket: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyBasketText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#808080',
+    marginTop: 20,
+  },
+  basketFooter: {
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#ececec',
+  },
+  basketTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  basketTotalLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0f1b2a',
+  },
+  basketTotalAmount: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0ca201',
+  },
+  proceedButton: {
+    backgroundColor: '#0ca201',
+    borderRadius: 10,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  proceedButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  dragIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#cccccc',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 15,
+  },
 }); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
